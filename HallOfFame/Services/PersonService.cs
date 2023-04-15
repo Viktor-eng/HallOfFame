@@ -1,17 +1,21 @@
 ﻿using AutoMapper;
+using HallOfFame.Data;
 using HallOfFame.Dtos.Person;
 using HallOfFame.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace HallOfFame.Services
 {
     public class PersonService : IPersonService
     {
         private readonly IMapper _mapper;
+        private readonly DataContext _context;
 
 
-        public PersonService(IMapper mapper)
+        public PersonService(IMapper mapper, DataContext context)
         {
             _mapper = mapper;
+            _context = context;
         }
 
         private static List<Person> persons = new List<Person>()
@@ -26,23 +30,24 @@ namespace HallOfFame.Services
             var serviceResponse = new ServiceResponse<List<GetPersonDto>>();
             var person = _mapper.Map<Person>(newPerson);
             person.Id = persons.Max(x => x.Id) + 1;
-            persons.Add(person);
-            serviceResponse.Data = persons.Select(c => _mapper.Map<GetPersonDto>(c)).ToList();
+            persons.Add(_mapper.Map<Person>(newPerson));
+            serviceResponse.Data = await _context.Persons.Select(c => _mapper.Map<GetPersonDto>(c)).ToListAsync();
             return serviceResponse;
         }
 
         public async Task<ServiceResponse<List<GetPersonDto>>> GetAllPersons()
         {
             var serviceResponse = new ServiceResponse<List<GetPersonDto>>();
-            serviceResponse.Data = persons.Select(c => _mapper.Map<GetPersonDto>(c)).ToList();
+            var dbPersons = await _context.Persons.ToListAsync();
+            serviceResponse.Data = dbPersons.Select(c => _mapper.Map<GetPersonDto>(c)).ToList();
             return serviceResponse;
         }
 
         public async Task<ServiceResponse<GetPersonDto>> GetPersonById(int id)
         {
             var serviceResponse = new ServiceResponse<GetPersonDto>();
-            var person = persons.FirstOrDefault(p => p.Id == id);
-            serviceResponse.Data = _mapper.Map<GetPersonDto>(person);
+            var dbPerson = await _context.Persons.FirstOrDefaultAsync(p => p.Id == id);
+            serviceResponse.Data = _mapper.Map<GetPersonDto>(dbPerson);
             return serviceResponse;
         }
 
@@ -52,17 +57,17 @@ namespace HallOfFame.Services
 
             try
             {
-                var person = persons.FirstOrDefault(x => x.Id == updatedPerson.Id);
-                if (person is null)
+                var dbPerson = await _context.Persons.FirstOrDefaultAsync(x => x.Id == updatedPerson.Id);
+                if (dbPerson is null)
                 {
                     throw new Exception($"Person with Id '{updatedPerson.Id}' not found.");
                 }
 
-                person.Name = updatedPerson.Name;
-                person.DisplayName = updatedPerson.DisplayName;
-                person.Skills = updatedPerson.Skills;
+                dbPerson.Name = updatedPerson.Name;
+                dbPerson.DisplayName = updatedPerson.DisplayName;
+                dbPerson.Skills = updatedPerson.Skills;
 
-                serviceResponse.Data = _mapper.Map<GetPersonDto>(person);
+                serviceResponse.Data = _mapper.Map<GetPersonDto>(dbPerson);
             }
             catch (Exception ex)
             {
@@ -79,13 +84,13 @@ namespace HallOfFame.Services
 
             try
             {
-                var person = persons.FirstOrDefault(x => x.Id == id);
-                if (person is null)
+                var dbPerson = await _context.Persons.FirstOrDefaultAsync(x => x.Id == id);
+                if (dbPerson is null)
                 {
                     throw new Exception($"Person with Id '{id}' not found.");
                 }
 
-               persons.Remove(person);
+               persons.Remove(dbPerson);
 
                 serviceResponse.Data = persons.Select(c => _mapper.Map<GetPersonDto>(c)).ToList();
             }
