@@ -1,6 +1,4 @@
-﻿using HallOfFame.Models;
-
-namespace HallOfFame.Dtos.Person
+﻿namespace HallOfFame.Dtos.Person
 {
     public class GetPersonDto
     {
@@ -10,6 +8,6 @@ namespace HallOfFame.Dtos.Person
 
         public string DisplayName { get; set; } = "ViktorWhite";
 
-        public List<Skill> Skills { get; set; } = new List<Skill>();
+        public List<GetSkillDto> Skills { get; set; } = new List<GetSkillDto>();
     }
 }

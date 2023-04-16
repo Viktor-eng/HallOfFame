@@ -18,27 +18,25 @@ namespace HallOfFame.Services
             _context = context;
         }
 
-        private static List<Person> persons = new List<Person>()
-        {
-            new Person(),
-            new Person {Id = 1, Name = "SuperViktor"}
-        };
-  
 
-        public async Task<ServiceResponse<List<GetPersonDto>>> AddPerson(AddPersonDto newPerson)
+        public async Task<ServiceResponse<int>> AddPerson(AddPersonDto newPerson)
         {
-            var serviceResponse = new ServiceResponse<List<GetPersonDto>>();
+            var serviceResponse = new ServiceResponse<int>();
             var person = _mapper.Map<Person>(newPerson);
-            person.Id = persons.Max(x => x.Id) + 1;
-            persons.Add(_mapper.Map<Person>(newPerson));
-            serviceResponse.Data = await _context.Persons.Select(c => _mapper.Map<GetPersonDto>(c)).ToListAsync();
+            _context.Persons.Add(person);
+            await _context.SaveChangesAsync();
+            serviceResponse.Data = person.Id;
             return serviceResponse;
         }
 
         public async Task<ServiceResponse<List<GetPersonDto>>> GetAllPersons()
         {
             var serviceResponse = new ServiceResponse<List<GetPersonDto>>();
-            var dbPersons = await _context.Persons.ToListAsync();
+
+            var dbPersons = await _context.Persons
+                .Include(p => p.Skills)
+                .ToListAsync();
+
             serviceResponse.Data = dbPersons.Select(c => _mapper.Map<GetPersonDto>(c)).ToList();
             return serviceResponse;
         }
@@ -46,7 +44,11 @@ namespace HallOfFame.Services
         public async Task<ServiceResponse<GetPersonDto>> GetPersonById(int id)
         {
             var serviceResponse = new ServiceResponse<GetPersonDto>();
-            var dbPerson = await _context.Persons.FirstOrDefaultAsync(p => p.Id == id);
+
+            var dbPerson = await _context.Persons
+                .Include(p => p.Skills)
+                .FirstOrDefaultAsync(p => p.Id == id);
+
             serviceResponse.Data = _mapper.Map<GetPersonDto>(dbPerson);
             return serviceResponse;
         }
@@ -57,15 +59,28 @@ namespace HallOfFame.Services
 
             try
             {
-                var dbPerson = await _context.Persons.FirstOrDefaultAsync(x => x.Id == updatedPerson.Id);
+                var dbPerson = await _context.Persons
+                    .Include(p => p.Skills)
+                    .FirstOrDefaultAsync(x => x.Id == updatedPerson.Id);
+
                 if (dbPerson is null)
                 {
-                    throw new Exception($"Person with Id '{updatedPerson.Id}' not found.");
+                    serviceResponse.Data = null;
+                    return serviceResponse;
                 }
 
                 dbPerson.Name = updatedPerson.Name;
                 dbPerson.DisplayName = updatedPerson.DisplayName;
-                dbPerson.Skills = updatedPerson.Skills;
+
+                var dbPersonListSkills = dbPerson.Skills.ToList();
+                var updatedPersonListSkills = updatedPerson.Skills.ToList();
+
+                var result = dbPersonListSkills.Where(p => !updatedPersonListSkills.Any(p2 => p2.Id == p.Id)).ToList();
+                
+
+                dbPerson.Skills = result;
+
+                await _context.SaveChangesAsync();
 
                 serviceResponse.Data = _mapper.Map<GetPersonDto>(dbPerson);
             }
@@ -74,33 +89,25 @@ namespace HallOfFame.Services
                 serviceResponse.Success = false;
                 serviceResponse.Message = ex.Message;
             }
-            
+
             return serviceResponse;
         }
 
-        public async Task<ServiceResponse<List<GetPersonDto>>> DeletePerson(int id)
+        public async Task DeletePerson(int id)
         {
             var serviceResponse = new ServiceResponse<List<GetPersonDto>>();
 
-            try
+            var dbPerson = await _context.Persons
+                .Include(p => p.Skills)
+                .FirstOrDefaultAsync(x => x.Id == id);
+
+            if (dbPerson is null)
             {
-                var dbPerson = await _context.Persons.FirstOrDefaultAsync(x => x.Id == id);
-                if (dbPerson is null)
-                {
-                    throw new Exception($"Person with Id '{id}' not found.");
-                }
-
-               persons.Remove(dbPerson);
-
-                serviceResponse.Data = persons.Select(c => _mapper.Map<GetPersonDto>(c)).ToList();
+                throw new Exception($"Person with Id '{id}' not found.");
             }
-            catch (Exception ex)
-            {
-                serviceResponse.Success = false;
-                serviceResponse.Message = ex.Message;
-            }
+            _context.Persons.Remove(dbPerson);
 
-            return serviceResponse;
+            await _context.SaveChangesAsync();
         }
     }
 }

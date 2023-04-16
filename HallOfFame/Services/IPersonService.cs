@@ -9,10 +9,10 @@ namespace HallOfFame.Services
         
         Task<ServiceResponse<GetPersonDto>> GetPersonById(int id);
 
-        Task<ServiceResponse<List<GetPersonDto>>> AddPerson (AddPersonDto newPerson);
+        Task<ServiceResponse<int>> AddPerson (AddPersonDto newPerson);
 
         Task<ServiceResponse<GetPersonDto>> UpdatePerson (UpdatePersonDto updatedPerson);
 
-        Task<ServiceResponse<List<GetPersonDto>>> DeletePerson(int id);
+        Task DeletePerson(int id);
     }
 }

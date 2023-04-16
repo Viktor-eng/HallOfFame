@@ -1,6 +1,5 @@
 ﻿using HallOfFame.Models;
 using Microsoft.EntityFrameworkCore;
-using System.Reflection.PortableExecutable;
 
 namespace HallOfFame.Data
 {
@@ -11,7 +10,22 @@ namespace HallOfFame.Data
 
         }
 
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<Person>()
+                .HasKey(p => p.Id);
 
-        public DbSet<Person> Persons => Set<Person>();
+            modelBuilder.Entity<Person>()
+                .HasMany(p => p.Skills)
+                .WithOne()
+                .OnDelete(DeleteBehavior.Cascade);
+
+
+            modelBuilder.Entity<Skill>().
+                HasKey(p => p.Id);
+        }
+    
+    public DbSet<Person> Persons => Set<Person>();
+
     }
 }

@@ -31,7 +31,7 @@ namespace HallOfFame.Controllers
         }
 
         [HttpPost("person")]
-        public async Task<ActionResult<ServiceResponse<List<GetPersonDto>>>> AddPerson(AddPersonDto newPerson)
+        public async Task<ActionResult<ServiceResponse<int>>> AddPerson(AddPersonDto newPerson)
         {
             return Ok(await _personService.AddPerson(newPerson));
         } 
@@ -48,14 +48,10 @@ namespace HallOfFame.Controllers
         }
 
         [HttpDelete("person/{id}")]
-        public async Task<ActionResult<ServiceResponse<GetPersonDto>>> DeletePerson(int id)
+        public async Task<ActionResult> DeletePerson(int id)
         {
-            var response = await _personService.DeletePerson(id);
-            if (response.Data is null)
-            {
-                return NotFound(response);
-            }
-            return Ok(response);
+            await _personService.DeletePerson(id);
+            return Ok();
         }
     }
 }
