@@ -72,13 +72,17 @@ namespace HallOfFame.Services
                 dbPerson.Name = updatedPerson.Name;
                 dbPerson.DisplayName = updatedPerson.DisplayName;
 
-                var dbPersonListSkills = dbPerson.Skills.ToList();
-                var updatedPersonListSkills = updatedPerson.Skills.ToList();
+                var newSkills = updatedPerson.Skills.Where(x => x.Id == 0).Select(s => _mapper.Map<Skill>(s)).ToList();
+                dbPerson.Skills.AddRange(newSkills);
 
-                var result = dbPersonListSkills.Where(p => !updatedPersonListSkills.Any(p2 => p2.Id == p.Id)).ToList();
-                
+                var changedSkills = updatedPerson.Skills.Where(x => x.Id != 0).Select(s => _mapper.Map<Skill>(s)).ToList();
 
-                dbPerson.Skills = result;
+                foreach (var changed in changedSkills)
+                {
+                    var dbSkill = dbPerson.Skills.First(x => x.Id == changed.Id);
+                    dbSkill.Name = changed.Name;
+                    dbSkill.Level = changed.Level;
+                }
 
                 await _context.SaveChangesAsync();
 
