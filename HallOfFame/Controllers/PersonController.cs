@@ -6,7 +6,8 @@ using Microsoft.AspNetCore.Mvc;
 namespace HallOfFame.Controllers
 {
     [ApiController]
-    [Route("api/v1/")]
+    [Route("api/v{version:apiVersion}/")]
+    [ApiVersion("1.0")]
     public class PersonController : ControllerBase
     {
         private readonly IPersonService _personService;
@@ -17,25 +18,28 @@ namespace HallOfFame.Controllers
             _personService = personService;
         }
 
-
+        [MapToApiVersion("1.0")]
         [HttpGet("persons")]
         public async Task<ActionResult<ServiceResponse<List<GetPersonDto>>>> GetAllPersons()
         {
             return Ok(await _personService.GetAllPersons());
         }
 
+        [MapToApiVersion("1.0")]
         [HttpGet("person/{id}")]
         public async Task<ActionResult<ServiceResponse<List<GetPersonDto>>>> GetPersonById(int id)
         {
             return Ok(await _personService.GetPersonById(id));
         }
 
+        [MapToApiVersion("1.0")]
         [HttpPost("person")]
         public async Task<ActionResult<ServiceResponse<int>>> AddPerson(AddPersonDto newPerson)
         {
             return Ok(await _personService.AddPerson(newPerson));
-        } 
-        
+        }
+
+        [MapToApiVersion("1.0")]
         [HttpPut("person")]
         public async Task<ActionResult<ServiceResponse<List<GetPersonDto>>>> UpdatePerson(UpdatePersonDto updatedPerson)
         {
@@ -47,6 +51,7 @@ namespace HallOfFame.Controllers
             return Ok(response);
         }
 
+        [MapToApiVersion("1.0")]
         [HttpDelete("person/{id}")]
         public async Task<ActionResult> DeletePerson(int id)
         {
