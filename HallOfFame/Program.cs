@@ -13,9 +13,7 @@ builder.Services.AddApiVersioning(options =>
     options.AssumeDefaultVersionWhenUnspecified = true;
     options.DefaultApiVersion = new ApiVersion(1,0);
     options.ReportApiVersions = true;
-    options.ApiVersionReader = 
-    
-      new HeaderApiVersionReader("X-Version");
+    options.ApiVersionReader =  new HeaderApiVersionReader("api-version");
 });
 
 builder.Services.AddDbContext<DataContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
