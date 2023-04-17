@@ -1,5 +1,8 @@
-﻿using HallOfFame.Models;
+﻿using HallOfFame.Data.Configurations;
+using HallOfFame.Models;
 using Microsoft.EntityFrameworkCore;
+using System.Reflection;
+
 
 namespace HallOfFame.Data
 {
@@ -12,20 +15,14 @@ namespace HallOfFame.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<Person>()
-                .HasKey(p => p.Id);
+            modelBuilder.ApplyConfiguration(new PersonConfigurations());
+            modelBuilder.ApplyConfiguration(new SkillConfiguration());
 
-            modelBuilder.Entity<Person>()
-                .HasMany(p => p.Skills)
-                .WithOne()
-                .OnDelete(DeleteBehavior.Cascade);
-
-
-            modelBuilder.Entity<Skill>().
-                HasKey(p => p.Id);
+            base.OnModelCreating(modelBuilder);
         }
     
-    public DbSet<Person> Persons => Set<Person>();
+        public DbSet<Person> Persons { get; set; }
 
+        public DbSet<Skill> Skills { get; set; }
     }
 }
