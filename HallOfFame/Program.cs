@@ -10,9 +10,6 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddApiVersioning(options =>
 {
-    options.AssumeDefaultVersionWhenUnspecified = true;
-    options.DefaultApiVersion = new ApiVersion(1,0);
-    options.ReportApiVersions = true;
     options.ApiVersionReader =  new HeaderApiVersionReader("api-version");
 });
 
