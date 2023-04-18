@@ -13,6 +13,7 @@ namespace HallOfFame.Data
 
         }
 
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.ApplyConfiguration(new PersonConfigurations());
