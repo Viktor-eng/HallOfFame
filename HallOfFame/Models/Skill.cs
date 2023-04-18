@@ -8,7 +8,7 @@
 
         public string Name { get; set; } = string.Empty;
 
-        public byte Level
+        public byte Level 
         {
             get
             {
