@@ -72,17 +72,33 @@ namespace HallOfFame.Services
                 dbPerson.Name = updatedPerson.Name;
                 dbPerson.DisplayName = updatedPerson.DisplayName;
 
-                var newSkills = updatedPerson.Skills.Where(x => x.Id == 0).Select(s => _mapper.Map<Skill>(s)).ToList();
-                dbPerson.Skills.AddRange(newSkills);
-
-                var changedSkills = updatedPerson.Skills.Where(x => x.Id != 0).Select(s => _mapper.Map<Skill>(s)).ToList();
-
-                foreach (var changed in changedSkills)
+                foreach (var skillUpdateDto in updatedPerson.Skills)
                 {
-                    var dbSkill = dbPerson.Skills.First(x => x.Id == changed.Id);
-                    dbSkill.Name = changed.Name;
-                    dbSkill.Level = changed.Level;
+                    var dbSkill = dbPerson.Skills.First(x => x.Id == skillUpdateDto.Id);
+                    dbSkill.Name = skillUpdateDto.Name;
+                    dbSkill.Level = skillUpdateDto.Level;
+
+                    if(!dbPerson.Skills.Any(s => s.Id == dbSkill.Id))
+                    {
+                        dbPerson.Skills.Add(dbSkill);
+                    }
                 }
+
+
+
+                //var newSkills = updatedPerson.Skills.Where(x => x.Id == 0).Select(s => _mapper.Map<Skill>(s)).ToList();
+                //dbPerson.Skills.AddRange(newSkills);
+
+                //var changedSkills = updatedPerson.Skills.Where(x => x.Id != 0).Select(s => _mapper.Map<Skill>(s)).ToList();
+
+
+
+                //foreach (var changed in changedSkills)
+                //{
+                //    var dbSkill = dbPerson.Skills.First(x => x.Id == changed.Id);
+                //    dbSkill.Name = changed.Name;
+                //    dbSkill.Level = changed.Level;
+                //}
 
                 await _context.SaveChangesAsync();
 
